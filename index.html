@@ -30,7 +30,7 @@
     <link rel="apple-touch-icon" href="/favicon.png">
 
 <title>Agência Collins Produções e Eventos</title>
-    <meta name="description" content="Agência Collins Produções e Eventos — planejamento, produção, credenciamento, equipes, live marketing e execução de eventos em Minas Gerais e em todo o Brasil.">
+    <meta name="description" content="Agência Collins Produções e Eventos — planejamento, produção, credenciamento, equipes, live marketing e execução de eventos de Minas Gerais e de todo o Brasil.">
     <meta name="theme-color" content="#0A0A0A">
     <meta name="robots" content="index,follow">
 
@@ -46,7 +46,7 @@
     <meta property="og:locale" content="pt_BR">
     <meta property="og:site_name" content="Agência Collins Produções e Eventos">
     <meta property="og:title" content="Agência Collins Produções e Eventos">
-    <meta property="og:description" content="Agência Collins Produções e Eventos — planejamento, produção, credenciamento, equipes, live marketing e execução de eventos em Minas Gerais e em todo o Brasil.">
+    <meta property="og:description" content="Agência Collins Produções e Eventos — planejamento, produção, credenciamento, equipes, live marketing e execução de eventos de Minas Gerais e de todo o Brasil.">
     <meta property="og:url" content="https://agenciacollins.com.br/">
     <meta property="og:image" content="https://agenciacollins.com.br/logo-collins.png">
     <meta property="og:image:alt" content="Agência Collins Produções e Eventos">
@@ -55,7 +55,7 @@
 
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Agência Collins Produções e Eventos">
-    <meta name="twitter:description" content="Agência Collins Produções e Eventos — planejamento, produção, credenciamento, equipes, live marketing e execução de eventos em Minas Gerais e em todo o Brasil.">
+    <meta name="twitter:description" content="Agência Collins Produções e Eventos — planejamento, produção, credenciamento, equipes, live marketing e execução de eventos de Minas Gerais e de todo o Brasil.">
 
     <script type="application/ld+json">
 {
@@ -496,6 +496,51 @@
                         </div>
 
                         <div class="form-row">
+                            <div class="form-group" data-field="estado">
+                                <label for="estado">Estado</label>
+                                <select id="estado" name="estado" required>
+                                    <option value="" disabled selected>Selecione o estado</option>
+                                    <option value="AC">Acre</option>
+                                    <option value="AL">Alagoas</option>
+                                    <option value="AP">Amapá</option>
+                                    <option value="AM">Amazonas</option>
+                                    <option value="BA">Bahia</option>
+                                    <option value="CE">Ceará</option>
+                                    <option value="DF">Distrito Federal</option>
+                                    <option value="ES">Espírito Santo</option>
+                                    <option value="GO">Goiás</option>
+                                    <option value="MA">Maranhão</option>
+                                    <option value="MT">Mato Grosso</option>
+                                    <option value="MS">Mato Grosso do Sul</option>
+                                    <option value="MG">Minas Gerais</option>
+                                    <option value="PA">Pará</option>
+                                    <option value="PB">Paraíba</option>
+                                    <option value="PR">Paraná</option>
+                                    <option value="PE">Pernambuco</option>
+                                    <option value="PI">Piauí</option>
+                                    <option value="RJ">Rio de Janeiro</option>
+                                    <option value="RN">Rio Grande do Norte</option>
+                                    <option value="RS">Rio Grande do Sul</option>
+                                    <option value="RO">Rondônia</option>
+                                    <option value="RR">Roraima</option>
+                                    <option value="SC">Santa Catarina</option>
+                                    <option value="SP">São Paulo</option>
+                                    <option value="SE">Sergipe</option>
+                                    <option value="TO">Tocantins</option>
+                                </select>
+                                <span class="form-error">Selecione o estado.</span>
+                            </div>
+
+                            <div class="form-group" data-field="municipio">
+                                <label for="municipio">Município</label>
+                                <select id="municipio" name="municipio" required disabled>
+                                    <option value="" disabled selected>Selecione primeiro o estado</option>
+                                </select>
+                                <span class="form-error">Selecione o município.</span>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
                             <div class="form-group" data-field="dataPrevista">
                                 <label for="dataPrevista">Data Prevista</label>
                                 <input type="text" id="dataPrevista" name="dataPrevista" placeholder="Ex.: 15/10/2026 ou A definir" required>
@@ -760,6 +805,61 @@
         const tipoEventoOutroWrap = document.getElementById('tipoEventoOutroWrap');
         const tipoEventoOutro = document.getElementById('tipoEventoOutro');
 
+        const estadoSelect = document.getElementById('estado');
+        const municipioSelect = document.getElementById('municipio');
+
+        async function carregarMunicipios(uf) {
+            municipioSelect.disabled = true;
+            municipioSelect.innerHTML = '<option value="" disabled selected>Carregando municípios...</option>';
+
+            try {
+                const resposta = await fetch(
+                    'https://servicodados.ibge.gov.br/api/v1/localidades/estados/' +
+                    encodeURIComponent(uf) +
+                    '/municipios?orderBy=nome'
+                );
+
+                if (!resposta.ok) {
+                    throw new Error('Falha ao carregar municípios.');
+                }
+
+                const municipios = await resposta.json();
+
+                municipioSelect.innerHTML = '<option value="" disabled selected>Selecione o município</option>';
+
+                municipios.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.nome;
+                    option.textContent = item.nome;
+                    municipioSelect.appendChild(option);
+                });
+
+                municipioSelect.disabled = false;
+
+            } catch (erro) {
+                municipioSelect.innerHTML = '<option value="" disabled selected>Não foi possível carregar os municípios</option>';
+                municipioSelect.disabled = true;
+            }
+        }
+
+        estadoSelect.addEventListener('change', () => {
+            const group = estadoSelect.closest('.form-group');
+            if (group) group.classList.remove('invalid');
+
+            if (!estadoSelect.value) {
+                municipioSelect.innerHTML = '<option value="" disabled selected>Selecione primeiro o estado</option>';
+                municipioSelect.disabled = true;
+                return;
+            }
+
+            carregarMunicipios(estadoSelect.value);
+        });
+
+        municipioSelect.addEventListener('change', () => {
+            const group = municipioSelect.closest('.form-group');
+            if (group) group.classList.remove('invalid');
+        });
+
         function atualizarCampoDigitar(select, wrap, input) {
             const mostrar = select.value === 'DIGITAR';
             wrap.hidden = !mostrar;
@@ -810,6 +910,8 @@
                 telefone: document.getElementById('telefone').value.trim(),
                 servico: servicoFinal,
                 tipoEvento: tipoEventoFinal,
+                estado: estadoSelect.options[estadoSelect.selectedIndex].text,
+                municipio: municipioSelect.value,
                 dataPrevista: document.getElementById('dataPrevista').value.trim(),
                 participantes: document.getElementById('participantes').value || 'A definir',
                 mensagem: document.getElementById('mensagem').value.trim()
@@ -824,6 +926,8 @@
                 `Telefone / WhatsApp: ${dados.telefone}`,
                 `Serviço: ${dados.servico}`,
                 `Tipo de evento: ${dados.tipoEvento}`,
+                `Estado: ${dados.estado}`,
+                `Município: ${dados.municipio}`,
                 `Data prevista: ${dados.dataPrevista}`,
                 `Nº de participantes: ${dados.participantes}`,
                 `Mensagem / Briefing: ${dados.mensagem}`
@@ -858,6 +962,9 @@
                 servicoOutro.required = false;
                 tipoEventoOutroWrap.hidden = true;
                 tipoEventoOutro.required = false;
+
+                municipioSelect.innerHTML = '<option value="" disabled selected>Selecione primeiro o estado</option>';
+                municipioSelect.disabled = true;
 
                 showToast('Solicitação enviada com sucesso! Em breve entraremos em contato.', true);
                 abrirWhatsAppOrcamento();
